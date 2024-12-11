@@ -13,12 +13,7 @@
       systems = import inputs.systems;
 
       perSystem =
-        {
-          self',
-          lib,
-          pkgs,
-          ...
-        }:
+        { lib, pkgs, ... }:
         let
           stdenv = pkgs.stdenvNoCC;
 
@@ -46,6 +41,7 @@
               "HAVE_X11=no"
               "HAVE_GLUT=no"
               "HAVE_OBJCOPY=no"
+              "XCFLAGS=-sSUPPORT_LONGJMP=0"
             ];
 
             nativeBuildInputs = [
@@ -95,6 +91,7 @@
           });
         in
         {
+          packages.mupdf = mupdf;
           packages.default = stdenv.mkDerivation {
             pname = "muchpdf";
             version = "0.1.0";
@@ -108,18 +105,13 @@
               pkg-config
             ];
 
-            outputs = [
-              "out"
-              "emscripten_cache"
-            ];
-
             mesonFlags = [
               "--cross-file=cross/wasm.txt"
             ];
 
             preConfigure = ''
               mkdir -p .emscriptencache
-              export EM_CACHE=$emscripten_cache
+              export EM_CACHE=$(mktemp -d)
             '';
 
             buildInputs = [
@@ -130,21 +122,10 @@
           devShells.default = pkgs.mkShell.override { inherit stdenv; } {
             name = "muchpdf";
 
-            inputsFrom = [ self'.packages.default ];
-
             packages = with pkgs; [
               llvmPackages.clang-tools
-              just
+              typst
             ];
-
-            EM_CONFIG = pkgs.writeText ".emscripten" ''
-              EMSCRIPTEN_ROOT = '${pkgs.emscripten}/share/emscripten'
-              LLVM_ROOT = '${pkgs.emscripten.llvmEnv}/bin'
-              BINARYEN_ROOT = '${pkgs.binaryen}'
-              NODE_JS = '${lib.getExe pkgs.nodejs}'
-              CACHE = '${self'.packages.default.emscripten_cache}'
-              FROZEN_CACHE = True
-            '';
           };
         };
     };
