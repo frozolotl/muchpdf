@@ -20,6 +20,7 @@ shared_module(
     '--no-entry',
     '-sSTANDALONE_WASM=1',
     '-sSUPPORT_LONGJMP=0',
+    '-sDETERMINISTIC=1',
   ],
   name_prefix: 'lib',
   name_suffix: 'wasm',

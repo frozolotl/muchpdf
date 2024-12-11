@@ -37,16 +37,3 @@ __attribute__((import_module("env"))) int setjmp(jmp_buf) { return 0; }
 __attribute__((import_module("env"))) void longjmp(jmp_buf, int) {
   abort();
 }
-
-typedef struct ResultTimestamp {
-  uint32_t tag;
-  uint64_t timestamp;
-} ResultTimestamp;
-
-__attribute__((import_module("wasi_snapshot_preview1"))) int32_t
-clock_time_get(int32_t, int64_t, ResultTimestamp *time_out) {
-  const ResultTimestamp time = {.tag = 0, .timestamp = 0};
-  *time_out = time;
-
-  return 0;
-}

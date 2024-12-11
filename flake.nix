@@ -17,6 +17,15 @@
         let
           stdenv = pkgs.stdenvNoCC;
 
+          emscripten = pkgs.emscripten.overrideAttrs (prevAttrs: {
+            version = "3.1.64-fork";
+            src = pkgs.fetchFromGitHub {
+              owner = "frozolotl";
+              repo = "emscripten";
+              hash = "sha256-eRHSawGIWe0Bf/MW0LvKhy6Y1wk5kL2dxR22fN92rfw=";
+              rev = "compat";
+            };
+          });
           mupdf = stdenv.mkDerivation (finalAttrs: {
             version = "1.24.9";
             pname = "mupdf";
@@ -27,11 +36,11 @@
             };
 
             postPatch = ''
-              substituteInPlace Makerules --replace "(shell pkg-config" "(shell $PKG_CONFIG"
+              substituteInPlace Makerules --replace-fail "(shell pkg-config" "(shell $PKG_CONFIG"
 
               # fix libclang unnamed struct format
               for wrapper in ./scripts/wrap/{cpp,state}.py; do
-                substituteInPlace "$wrapper" --replace 'struct (unnamed' '(unnamed struct'
+                substituteInPlace "$wrapper" --replace-fail 'struct (unnamed' '(unnamed struct'
               done
             '';
 
@@ -45,10 +54,17 @@
             ];
 
             nativeBuildInputs = [
-              pkgs.emscripten
+              emscripten
               pkgs.llvmPackages.bintools
               pkgs.pkg-config
             ];
+
+            configurePhase = ''
+              export HOME="$TMPDIR"
+
+              runHook preConfigure
+              runHook postConfigure
+            '';
 
             buildPhase = ''
               runHook preBuild
