@@ -1,39 +1,40 @@
 #include <mupdf/fitz.h>
-#include <setjmp.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
 
-#include "emscripten.h"
+#include "muchpdf.h"
 
-#define PROTOCOL_FUNCTION __attribute__((import_module("typst_env"))) extern
-#define TYPST_OK 0
-#define TYPST_ERR 1
-
-PROTOCOL_FUNCTION void
-wasm_minimal_protocol_send_result_to_host(const uint8_t *ptr, size_t len);
-PROTOCOL_FUNCTION void wasm_minimal_protocol_write_args_to_buffer(uint8_t *ptr);
-
-EMSCRIPTEN_KEEPALIVE
-int32_t render(const size_t input_len) {
-  uint8_t *const input = (uint8_t *)malloc(input_len);
-  if (!input) {
-    return TYPST_ERR;
-  }
-  wasm_minimal_protocol_write_args_to_buffer(input);
-
+int32_t render_input(uint8_t *const input, const size_t input_len,
+                     uint8_t **const rendered, size_t *const rendered_len) {
   fz_context *const ctx = fz_new_context(NULL, NULL, FZ_STORE_UNLIMITED);
   if (!ctx) {
-    return TYPST_ERR;
+    return MUCHPDF_ERR;
   }
 
-  wasm_minimal_protocol_send_result_to_host(input, input_len);
+  fz_buffer *buffer = fz_new_buffer_from_data(ctx, input, input_len);
 
-  free(input);
-  return TYPST_ERR;
-}
+  fz_register_document_handlers(ctx);
+  fz_document *document = fz_open_document_with_buffer(ctx, "application/octet-stream", buffer);
 
-__attribute__((import_module("env"))) int setjmp(jmp_buf) { return 0; }
-__attribute__((import_module("env"))) void longjmp(jmp_buf, int) {
-  abort();
+  // Default is 72 PPI, this is therefore 288 PPI.
+	fz_matrix affine = fz_scale(4.0, 4.0);
+	int page_number = 0;
+	fz_colorspace *color_space = fz_device_rgb(ctx);
+	int alpha = 0;
+	fz_pixmap *pixmap = fz_new_pixmap_from_page_number(ctx, document, page_number, affine, color_space, alpha);
+
+	fz_buffer *out_buf = fz_new_buffer(ctx, 1024);
+	fz_output *out = fz_new_output_with_buffer(ctx, out_buf);
+	fz_write_pixmap_as_png(ctx, out, pixmap);
+	fz_close_output(ctx, out);
+
+	*rendered_len = fz_buffer_extract(ctx, out_buf, rendered);
+
+  fz_drop_output(ctx, out);
+	fz_drop_pixmap(ctx, pixmap);
+	fz_drop_document(ctx, document);
+	fz_drop_context(ctx);
+
+  return MUCHPDF_OK;
 }

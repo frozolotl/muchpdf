@@ -1,8 +1,19 @@
-#include <time.h>
+#include <errno.h>
+#include <setjmp.h>
+#include <stdint.h>
+#include <stdlib.h>
 
-int __clock_gettime(clockid_t clk, struct timespec *ts) {
-  ts->tv_sec = 0;
-  ts->tv_nsec = 0;
-  return 0;
+int setjmp(jmp_buf env) { return 0; }
+void longjmp(jmp_buf env, int val) { abort(); }
+
+int __syscall_unlinkat(int fd, const char *path, int flag) {
+  errno = EPERM;
+  return -1;
 }
 
+int __syscall_rmdir(intptr_t path) {
+  errno = EPERM;
+  return -1;
+}
+
+void _tzset_js(long *timezone, int *daylight, char *std_name, char *dst_name) {}

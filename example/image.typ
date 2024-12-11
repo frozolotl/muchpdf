@@ -1,4 +1,10 @@
-#set page(width: auto, height: auto, margin: 0.5em)
+#set page(width: 10cm, height: auto, margin: 0.5em)
+
 #lorem(100)
-#square(fill: red)
-#circle(fill: red)
+
+#stack(
+  dir: ltr,
+  square(size: 2cm, fill: red),
+  1cm,
+  circle(radius: 1cm, fill: gradient.radial(..color.map.rainbow)),
+)

@@ -5,6 +5,14 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
     systems.url = "github:nix-systems/default";
+    emscripten = {
+      url = "github:emscripten-core/emscripten?rev=a1fe3902bf73a3802eae0357d273d0e37ea79898";
+      flake = false;
+    };
+    mupdf = {
+      url = "https://mupdf.com/downloads/archive/mupdf-1.24.9-source.tar.gz";
+      flake = false;
+    };
   };
 
   outputs =
@@ -19,21 +27,15 @@
 
           emscripten = pkgs.emscripten.overrideAttrs (prevAttrs: {
             version = "3.1.64-fork";
-            src = pkgs.fetchFromGitHub {
-              owner = "frozolotl";
-              repo = "emscripten";
-              hash = "sha256-eRHSawGIWe0Bf/MW0LvKhy6Y1wk5kL2dxR22fN92rfw=";
-              rev = "compat";
-            };
+            src = inputs.emscripten;
+            # Don't run (failing) tests.
+            installPhase = builtins.replaceStrings ["python test/runner.py test_hello_world"] [""] prevAttrs.installPhase;
           });
           mupdf = stdenv.mkDerivation (finalAttrs: {
             version = "1.24.9";
             pname = "mupdf";
 
-            src = pkgs.fetchurl {
-              url = "https://mupdf.com/downloads/archive/mupdf-${finalAttrs.version}-source.tar.gz";
-              hash = "sha256-C0RqoO7MEU6ZadzNcMl4k1j8y2WJqB1HDclBoIdNqYo=";
-            };
+            src = inputs.mupdf;
 
             postPatch = ''
               substituteInPlace Makerules --replace-fail "(shell pkg-config" "(shell $PKG_CONFIG"
@@ -50,7 +52,6 @@
               "HAVE_X11=no"
               "HAVE_GLUT=no"
               "HAVE_OBJCOPY=no"
-              "XCFLAGS=-sSUPPORT_LONGJMP=0"
             ];
 
             nativeBuildInputs = [
@@ -69,7 +70,12 @@
             buildPhase = ''
               runHook preBuild
 
-              emmake make -j $NIX_BUILD_CORES $makeFlags "''${makeFlagsArray[@]}" libs
+              makeFlagsArray+=(
+                -j $NIX_BUILD_CORES
+                XCFLAGS="-sSUPPORT_LONGJMP=0 -Os"
+              )
+
+              emmake make $makeFlags "''${makeFlagsArray[@]}" libs
 
               runHook postBuild
             '';
