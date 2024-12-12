@@ -1,6 +1,6 @@
 #include "muchpdf.h"
 
-const uint8_t input[] = {
+uint8_t input[] = {
 #embed "../example/image.pdf"
 };
 
