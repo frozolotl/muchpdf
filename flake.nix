@@ -17,16 +17,26 @@
         let
           stdenv = pkgs.stdenvNoCC;
 
-          emscripten = pkgs.emscripten.overrideAttrs (prevAttrs: {
-            patches = prevAttrs.patches ++ [
-              ./patches/emscripten.patch
-            ];
+          emscripten = pkgs.emscripten.overrideAttrs (
+            finalAttrs: prevAttrs: {
+              version = "3.1.64";
+              src = pkgs.fetchFromGitHub {
+                owner = "emscripten-core";
+                repo = "emscripten";
+                hash = "sha256-AbO1b4pxZ7I6n1dRzxhLC7DnXIUnaCK9SbLy96Qxqr0=";
+                rev = finalAttrs.version;
+              };
 
-            # Don't run (failing) tests.
-            installPhase =
-              builtins.replaceStrings [ "python test/runner.py test_hello_world" ] [ "" ]
-                prevAttrs.installPhase;
-          });
+              patches = prevAttrs.patches ++ [
+                ./patches/emscripten.patch
+              ];
+
+              # Don't run (failing) tests.
+              installPhase =
+                builtins.replaceStrings [ "python test/runner.py test_hello_world" ] [ "" ]
+                  prevAttrs.installPhase;
+            }
+          );
           mupdf = stdenv.mkDerivation (finalAttrs: {
             version = "1.24.9";
             pname = "mupdf";
