@@ -37,7 +37,6 @@ executable(
   'muchpdf-wasmer',
   sources: sources + wasmer_sources,
   dependencies: deps,
-  install: true,
   link_args: [
     '-sSTANDALONE_WASM=1',
     '-sSUPPORT_LONGJMP=0',
