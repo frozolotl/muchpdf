@@ -5,7 +5,7 @@
 
 #include "muchpdf.h"
 
-int32_t render_input(uint8_t *const input, const size_t input_len,
+int32_t render_input(uint8_t *const input, const size_t input_len, const double scale,
                      uint8_t **const rendered, size_t *const rendered_len) {
   fz_context *const ctx = fz_new_context(NULL, NULL, FZ_STORE_UNLIMITED);
   if (!ctx) {
@@ -17,8 +17,7 @@ int32_t render_input(uint8_t *const input, const size_t input_len,
   fz_register_document_handlers(ctx);
   fz_document *document = fz_open_document_with_buffer(ctx, "application/octet-stream", buffer);
 
-  // Default is 72 PPI, this is therefore 288 PPI.
-	fz_matrix affine = fz_scale(4.0, 4.0);
+	fz_matrix affine = fz_scale(scale, scale);
 	int page_number = 0;
 	fz_colorspace *color_space = fz_device_rgb(ctx);
 	int alpha = 0;

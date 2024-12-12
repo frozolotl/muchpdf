@@ -7,5 +7,5 @@ uint8_t input[] = {
 int main() {
   uint8_t *rendered;
   size_t rendered_len;
-  return render_input(input, sizeof(input), &rendered, &rendered_len);
+  return render_input(input, sizeof(input), 2.0, &rendered, &rendered_len);
 }
