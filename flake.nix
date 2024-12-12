@@ -185,7 +185,6 @@
             name = "muchpdf";
 
             packages = with pkgs; [
-              llvmPackages.clang-tools
               typst
             ];
           };
