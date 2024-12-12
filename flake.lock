@@ -1,22 +1,5 @@
 {
   "nodes": {
-    "emscripten": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1721318887,
-        "narHash": "sha256-AbO1b4pxZ7I6n1dRzxhLC7DnXIUnaCK9SbLy96Qxqr0=",
-        "owner": "emscripten-core",
-        "repo": "emscripten",
-        "rev": "a1fe3902bf73a3802eae0357d273d0e37ea79898",
-        "type": "github"
-      },
-      "original": {
-        "owner": "emscripten-core",
-        "repo": "emscripten",
-        "rev": "a1fe3902bf73a3802eae0357d273d0e37ea79898",
-        "type": "github"
-      }
-    },
     "flake-parts": {
       "inputs": {
         "nixpkgs-lib": "nixpkgs-lib"
@@ -33,19 +16,6 @@
         "owner": "hercules-ci",
         "repo": "flake-parts",
         "type": "github"
-      }
-    },
-    "mupdf": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1725014834,
-        "narHash": "sha256-q1xpzCcq0JaZ/y7kFpBnPKhLu7e7QUFbSe93vY+nyBI=",
-        "type": "tarball",
-        "url": "https://mupdf.com/downloads/archive/mupdf-1.24.9-source.tar.gz"
-      },
-      "original": {
-        "type": "tarball",
-        "url": "https://mupdf.com/downloads/archive/mupdf-1.24.9-source.tar.gz"
       }
     },
     "nixpkgs": {
@@ -78,9 +48,7 @@
     },
     "root": {
       "inputs": {
-        "emscripten": "emscripten",
         "flake-parts": "flake-parts",
-        "mupdf": "mupdf",
         "nixpkgs": "nixpkgs",
         "systems": "systems"
       }

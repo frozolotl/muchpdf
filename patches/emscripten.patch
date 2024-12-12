@@ -1,0 +1,231 @@
+diff --git a/system/lib/libc/crt1.c b/system/lib/libc/crt1.c
+index 023292161..4a69ab6f1 100644
+--- a/system/lib/libc/crt1.c
++++ b/system/lib/libc/crt1.c
+@@ -22,7 +22,5 @@ void _start(void) {
+    * or our __original_main fallback in __original_main.c which handles
+    * populating argv.
+    */
+-  int r = __main_void();
+-
+-  exit(r);
++  __main_void();
+ }
+diff --git a/system/lib/libc/musl/src/dirent/opendir.c b/system/lib/libc/musl/src/dirent/opendir.c
+index 40068becf..cb169bbf6 100644
+--- a/system/lib/libc/musl/src/dirent/opendir.c
++++ b/system/lib/libc/musl/src/dirent/opendir.c
+@@ -14,7 +14,8 @@ DIR *opendir(const char *name)
+ 		return 0;
+ 	if (!(dir = calloc(1, sizeof *dir))) {
+ #ifdef __EMSCRIPTEN__
+-		__wasi_fd_close(fd);
++		errno = EPERM;
++		return 0;
+ #else
+ 		__syscall(SYS_close, fd);
+ #endif
+diff --git a/system/lib/libc/musl/src/dirent/readdir.c b/system/lib/libc/musl/src/dirent/readdir.c
+index 5a03b3635..1c846e896 100644
+--- a/system/lib/libc/musl/src/dirent/readdir.c
++++ b/system/lib/libc/musl/src/dirent/readdir.c
+@@ -9,19 +9,6 @@ typedef char dirstream_buf_alignment_check[1-2*(int)(
+ 
+ struct dirent *readdir(DIR *dir)
+ {
+-	struct dirent *de;
+-	
+-	if (dir->buf_pos >= dir->buf_end) {
+-		int len = __syscall(SYS_getdents, dir->fd, dir->buf, sizeof dir->buf);
+-		if (len <= 0) {
+-			if (len < 0 && len != -ENOENT) errno = -len;
+-			return 0;
+-		}
+-		dir->buf_end = len;
+-		dir->buf_pos = 0;
+-	}
+-	de = (void *)(dir->buf + dir->buf_pos);
+-	dir->buf_pos += de->d_reclen;
+-	dir->tell = de->d_off;
+-	return de;
++	errno = EPERM;
++	return 0;
+ }
+diff --git a/system/lib/libc/musl/src/env/__environ.c b/system/lib/libc/musl/src/env/__environ.c
+index fcc881be0..0ed26af3a 100644
+--- a/system/lib/libc/musl/src/env/__environ.c
++++ b/system/lib/libc/musl/src/env/__environ.c
+@@ -14,30 +14,6 @@ weak_alias(__environ, environ);
+ // and we don't want LSan to consider this a leak.
+ __attribute__((constructor(100))) // construct this before user code
+ void __emscripten_environ_constructor(void) {
+-    size_t environ_count;
+-    size_t environ_buf_size;
+-    __wasi_errno_t err = __wasi_environ_sizes_get(&environ_count,
+-                                                  &environ_buf_size);
+-    if (err != __WASI_ERRNO_SUCCESS) {
+-        return;
+-    }
+-
+-    __environ = emscripten_builtin_malloc(sizeof(char *) * (environ_count + 1));
+-    if (__environ == 0) {
+-        return;
+-    }
+-    char *environ_buf = emscripten_builtin_malloc(sizeof(char) * environ_buf_size);
+-    if (environ_buf == 0) {
+-        __environ = 0;
+-        return;
+-    }
+-
+-    // Ensure null termination.
+-    __environ[environ_count] = 0;
+-
+-    err = __wasi_environ_get((uint8_t**)__environ, environ_buf);
+-    if (err != __WASI_ERRNO_SUCCESS) {
+-        __environ = 0;
+-    }
++    __environ = 0;
+ }
+ #endif
+diff --git a/system/lib/libc/musl/src/exit/_Exit.c b/system/lib/libc/musl/src/exit/_Exit.c
+index 9d06aac1d..81ab120d8 100644
+--- a/system/lib/libc/musl/src/exit/_Exit.c
++++ b/system/lib/libc/musl/src/exit/_Exit.c
+@@ -4,7 +4,7 @@
+ _Noreturn void _Exit(int ec)
+ {
+ #ifdef __EMSCRIPTEN__
+-	__wasi_proc_exit(ec);
++	abort();
+ #else
+ 	__syscall(SYS_exit_group, ec);
+ 	for (;;) __syscall(SYS_exit, ec);
+diff --git a/system/lib/libc/musl/src/stdio/__stdio_close.c b/system/lib/libc/musl/src/stdio/__stdio_close.c
+index 7618de930..4974643c9 100644
+--- a/system/lib/libc/musl/src/stdio/__stdio_close.c
++++ b/system/lib/libc/musl/src/stdio/__stdio_close.c
+@@ -11,7 +11,8 @@ weak_alias(dummy, __aio_close);
+ int __stdio_close(FILE *f)
+ {
+ #ifdef __EMSCRIPTEN__
+-	return __wasi_syscall_ret(__wasi_fd_close(__aio_close(f->fd)));
++	f->flags |= F_ERR;
++	return 0;
+ #else
+ 	return syscall(SYS_close, __aio_close(f->fd));
+ #endif
+diff --git a/system/lib/libc/musl/src/stdio/__stdio_read.c b/system/lib/libc/musl/src/stdio/__stdio_read.c
+index 392a48582..1c103f9e9 100644
+--- a/system/lib/libc/musl/src/stdio/__stdio_read.c
++++ b/system/lib/libc/musl/src/stdio/__stdio_read.c
+@@ -10,11 +10,7 @@ size_t __stdio_read(FILE *f, unsigned char *buf, size_t len)
+ 	ssize_t cnt;
+ 
+ #if __EMSCRIPTEN__
+-	size_t num;
+-	if (__wasi_syscall_ret(__wasi_fd_read(f->fd, (struct __wasi_iovec_t*)iov, 2, &num))) {
+-		num = -1;
+-	}
+-	cnt = num;
++	cnt = -1;
+ #else
+ 	cnt = iov[0].iov_len ? syscall(SYS_readv, f->fd, iov, 2)
+ 		: syscall(SYS_read, f->fd, iov[1].iov_base, iov[1].iov_len);
+diff --git a/system/lib/libc/musl/src/stdio/__stdio_seek.c b/system/lib/libc/musl/src/stdio/__stdio_seek.c
+index 326ab9bce..87880dda2 100644
+--- a/system/lib/libc/musl/src/stdio/__stdio_seek.c
++++ b/system/lib/libc/musl/src/stdio/__stdio_seek.c
+@@ -3,5 +3,6 @@
+ 
+ off_t __stdio_seek(FILE *f, off_t off, int whence)
+ {
+-	return __lseek(f->fd, off, whence);
++	f->flags |= F_ERR;
++	return 0;
+ }
+diff --git a/system/lib/libc/musl/src/stdio/__stdio_write.c b/system/lib/libc/musl/src/stdio/__stdio_write.c
+index cce9f6a16..7162f4efd 100644
+--- a/system/lib/libc/musl/src/stdio/__stdio_write.c
++++ b/system/lib/libc/musl/src/stdio/__stdio_write.c
+@@ -13,11 +13,7 @@ size_t __stdio_write(FILE *f, const unsigned char *buf, size_t len)
+ 	ssize_t cnt;
+ 	for (;;) {
+ #if __EMSCRIPTEN__
+-		size_t num;
+-		if (__wasi_syscall_ret(__wasi_fd_write(f->fd, (struct __wasi_ciovec_t*)iov, iovcnt, &num))) {
+-			num = -1;
+-		}
+-		cnt = num;
++		cnt = -1;
+ #else
+ 		cnt = syscall(SYS_writev, f->fd, iov, iovcnt);
+ #endif
+diff --git a/system/lib/libc/musl/src/stdio/fopen.c b/system/lib/libc/musl/src/stdio/fopen.c
+index 97a5f816a..c12a4631a 100644
+--- a/system/lib/libc/musl/src/stdio/fopen.c
++++ b/system/lib/libc/musl/src/stdio/fopen.c
+@@ -29,7 +29,8 @@ FILE *fopen(const char *restrict filename, const char *restrict mode)
+ 	if (f) return f;
+ 
+ #ifdef __EMSCRIPTEN__
+-	__wasi_fd_close(fd);
++	errno = EPERM;
++	return 0;
+ #else
+ 	__syscall(SYS_close, fd);
+ #endif
+diff --git a/system/lib/libc/musl/src/time/clock_gettime.c b/system/lib/libc/musl/src/time/clock_gettime.c
+index 18926de8c..a350ddc1e 100644
+--- a/system/lib/libc/musl/src/time/clock_gettime.c
++++ b/system/lib/libc/musl/src/time/clock_gettime.c
+@@ -61,16 +61,8 @@ _Static_assert(CLOCK_REALTIME == __WASI_CLOCKID_REALTIME, "monotonic clock must
+ _Static_assert(CLOCK_MONOTONIC == __WASI_CLOCKID_MONOTONIC, "monotonic clock must match");
+ 
+ int __clock_gettime(clockid_t clk, struct timespec *ts) {
+-	__wasi_timestamp_t timestamp;
+-	// See https://github.com/bytecodealliance/wasmtime/issues/3714
+-	if (clk > __WASI_CLOCKID_THREAD_CPUTIME_ID || clk < 0) {
+-		errno = EINVAL;
+-		return -1;
+-  }
+-	if (__wasi_syscall_ret(__wasi_clock_time_get(clk, 1, &timestamp))) {
+-		return -1;
+-	}
+-	*ts = __wasi_timestamp_to_timespec(timestamp);
++	ts->tv_sec = 0;
++	ts->tv_nsec = 0;
+ 	return 0;
+ }
+ #else // __EMSCRIPTEN__
+diff --git a/system/lib/libc/musl/src/unistd/close.c b/system/lib/libc/musl/src/unistd/close.c
+index 5a453ff33..c277e16b6 100644
+--- a/system/lib/libc/musl/src/unistd/close.c
++++ b/system/lib/libc/musl/src/unistd/close.c
+@@ -14,9 +14,8 @@ int close(int fd)
+ {
+ 	fd = __aio_close(fd);
+ #ifdef __EMSCRIPTEN__
+-	int r = __wasi_fd_close(fd);
+-	if (r == __WASI_ERRNO_INTR) r = __WASI_ERRNO_SUCCESS;
+-	return __wasi_syscall_ret(r);
++	errno = EPERM;
++	return -1;
+ #else
+ 	int r = __syscall_cp(SYS_close, fd);
+ 	if (r == -EINTR) r = 0;
+diff --git a/system/lib/libc/musl/src/unistd/ftruncate.c b/system/lib/libc/musl/src/unistd/ftruncate.c
+index 54ff34bc3..522ddd03f 100644
+--- a/system/lib/libc/musl/src/unistd/ftruncate.c
++++ b/system/lib/libc/musl/src/unistd/ftruncate.c
+@@ -1,7 +1,9 @@
+ #include <unistd.h>
++#include <errno.h>
+ #include "syscall.h"
+ 
+ int ftruncate(int fd, off_t length)
+ {
+-	return syscall(SYS_ftruncate, fd, __SYSCALL_LL_O(length));
++	errno = EPERM;
++	return 0;
+ }
+
