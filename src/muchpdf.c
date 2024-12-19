@@ -15,7 +15,7 @@ int32_t render_input(uint8_t *const input, const size_t input_len, const double 
   fz_buffer *buffer = fz_new_buffer_from_data(ctx, input, input_len);
 
   fz_register_document_handlers(ctx);
-  fz_document *document = fz_open_document_with_buffer(ctx, "application/octet-stream", buffer);
+  fz_document *document = fz_open_document_with_buffer(ctx, "application/pdf", buffer);
 
 	fz_matrix affine = fz_scale(scale, scale);
 	int page_number = 0;
@@ -29,6 +29,12 @@ int32_t render_input(uint8_t *const input, const size_t input_len, const double 
 	fz_close_output(ctx, out);
 
 	*rendered_len = fz_buffer_extract(ctx, out_buf, rendered);
+	const size_t pixmap_len = pixmap->h * pixmap->stride;
+	*rendered_len = pixmap_len + sizeof(uint32_t);
+	*rendered = (uint8_t *)malloc(*rendered_len);
+	// Always little endian because we exclusively target WASM.
+	memcpy(*rendered, &pixmap->h, sizeof(uint32_t));
+	memcpy(*rendered + sizeof(uint32_t), &pixmap->samples, pixmap_len);
 
   fz_drop_output(ctx, out);
 	fz_drop_pixmap(ctx, pixmap);
