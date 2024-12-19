@@ -10,11 +10,10 @@ project(
   ],
 )
 
-sources = []
-
 deps = []
 deps += dependency('mupdf')
 
+sources = []
 subdir('src')
 
 common_link_args = [
