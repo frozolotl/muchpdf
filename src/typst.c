@@ -1,7 +1,7 @@
+#include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-#include <assert.h>
 
 #include "emscripten.h"
 #include "muchpdf.h"
@@ -23,10 +23,11 @@ int32_t render(const size_t input_len, const size_t scale_len) {
   }
   wasm_minimal_protocol_write_args_to_buffer(input);
 
-  const double scale = *((double*)&input[input_len]);
+  const double scale = *((double *)&input[input_len]);
   uint8_t *rendered;
   size_t rendered_len;
-  const int32_t err = render_input(input, input_len, scale, &rendered, &rendered_len);
+  const int32_t err =
+      render_input(input, input_len, scale, &rendered, &rendered_len);
   if (err != MUCHPDF_OK) {
     return TYPST_ERR;
   }

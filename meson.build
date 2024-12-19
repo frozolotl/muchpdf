@@ -11,8 +11,6 @@ project(
 )
 
 sources = []
-typst_sources = []
-wasmer_sources = []
 
 deps = []
 deps += dependency('mupdf')
@@ -26,24 +24,12 @@ common_link_args = [
 
 shared_module(
   'muchpdf',
-  sources: sources + typst_sources,
+  sources: sources,
   dependencies: deps,
   install: true,
   link_args: common_link_args + [
     '--no-entry',
     '-sBINARYEN_EXTRA_PASSES=-Os'
-  ],
-  name_prefix: 'lib',
-  name_suffix: 'wasm',
-)
-
-# Exists for debugging purposes.
-executable(
-  'muchpdf-wasmer',
-  sources: sources + wasmer_sources,
-  dependencies: deps,
-  link_args: common_link_args + [
-    '-g3',
   ],
   name_prefix: '',
   name_suffix: 'wasm',
