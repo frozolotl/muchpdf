@@ -5,8 +5,9 @@
 
 #include "muchpdf.h"
 
-int32_t render_input(uint8_t *const input, const size_t input_len, const double scale,
-                     uint8_t **const rendered, size_t *const rendered_len) {
+int32_t render_input(uint8_t *const input, const size_t input_len,
+                     const double scale, uint8_t **const rendered,
+                     size_t *const rendered_len) {
   fz_context *const ctx = fz_new_context(NULL, NULL, FZ_STORE_UNLIMITED);
   if (!ctx) {
     return MUCHPDF_ERR;
@@ -15,31 +16,37 @@ int32_t render_input(uint8_t *const input, const size_t input_len, const double 
   fz_buffer *buffer = fz_new_buffer_from_data(ctx, input, input_len);
 
   fz_register_document_handlers(ctx);
-  fz_document *document = fz_open_document_with_buffer(ctx, "application/pdf", buffer);
+  fz_document *document =
+      fz_open_document_with_buffer(ctx, "application/pdf", buffer);
 
-	fz_matrix affine = fz_scale(scale, scale);
-	int page_number = 0;
-	fz_colorspace *color_space = fz_device_rgb(ctx);
-	int alpha = 0;
-	fz_pixmap *pixmap = fz_new_pixmap_from_page_number(ctx, document, page_number, affine, color_space, alpha);
+  fz_buffer *out_buf = fz_new_buffer(ctx, 1024);
+  fz_output *out = fz_new_output_with_buffer(ctx, out_buf);
 
-	fz_buffer *out_buf = fz_new_buffer(ctx, 1024);
-	fz_output *out = fz_new_output_with_buffer(ctx, out_buf);
-	fz_write_pixmap_as_png(ctx, out, pixmap);
-	fz_close_output(ctx, out);
+  fz_cookie cookie = {0};
 
-	*rendered_len = fz_buffer_extract(ctx, out_buf, rendered);
-	const size_t pixmap_len = pixmap->h * pixmap->stride;
-	*rendered_len = pixmap_len + sizeof(uint32_t);
-	*rendered = (uint8_t *)malloc(*rendered_len);
-	// Always little endian because we exclusively target WASM.
-	memcpy(*rendered, &pixmap->h, sizeof(uint32_t));
-	memcpy(*rendered + sizeof(uint32_t), &pixmap->samples, pixmap_len);
+  fz_matrix affine = fz_scale(scale, scale);
+  const int page_number = 0;
+  fz_page *page = fz_load_page(ctx, document, page_number);
+  fz_rect mediabox = fz_bound_page_box(ctx, page, FZ_CROP_BOX);
+  fz_rect page_bounds = fz_transform_rect(mediabox, affine);
+  const float page_width = page_bounds.x1 - page_bounds.x0;
+  const float page_height = page_bounds.y1 - page_bounds.y0;
+  const int reuse_images = 1;
+  fz_device *device = fz_new_svg_device(ctx, out, page_width, page_height,
+                                        FZ_SVG_TEXT_AS_PATH, reuse_images);
+  fz_run_page(ctx, page, device, affine, &cookie);
 
+  fz_close_device(ctx, device);
+  fz_close_output(ctx, out);
+
+  *rendered_len = fz_buffer_extract(ctx, out_buf, rendered);
+
+  fz_drop_device(ctx, device);
+  fz_drop_page(ctx, page);
   fz_drop_output(ctx, out);
-	fz_drop_pixmap(ctx, pixmap);
-	fz_drop_document(ctx, document);
-	fz_drop_context(ctx);
+  fz_drop_document(ctx, document);
+  fz_drop_buffer(ctx, buffer);
+  fz_drop_context(ctx);
 
   return MUCHPDF_OK;
 }
