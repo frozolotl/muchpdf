@@ -112,6 +112,7 @@ int32_t muchpdf_render_input(uint8_t *const input, const size_t input_len,
       }
       fz_page *page = fz_load_page(ctx.context, ctx.document, page_number);
       muchpdf_render_page(&ctx, page, &rendered_pages[rendered_pages_idx]);
+      fz_drop_page(ctx.context, page);
       ++rendered_pages_idx;
     }
   }
