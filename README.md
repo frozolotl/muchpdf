@@ -7,13 +7,27 @@ without which this project would not be possible!
 
 ## Usage
 
-It is easy to use:
+Import the `muchpdf` function, and give it the PDF data:
 
 ```typ
 #import "@preview/muchpdf:0.1.0": muchpdf
 
 #muchpdf(read("graphic.pdf", encoding: none))
 ```
+
+---
+
+The parameters provided by [image][image] do also work as expected:
+
+```typ
+#muchpdf(
+  read("dolphins.pdf", encoding: none),
+  width: 10cm,
+  alt: "Dolphin population over time",
+)
+```
+
+---
 
 You can increase the scale, if desired:
 
@@ -23,6 +37,8 @@ You can increase the scale, if desired:
   scale: 2.0,
 )
 ```
+
+---
 
 If you do not want to insert every page into your document, you can provide the `pages` argument.
 Note that it starts at zero, not one.
@@ -34,16 +50,6 @@ Note that it starts at zero, not one.
 #muchpdf(data, pages: (start: 5, end: 9))
 #muchpdf(data, pages: (start: 5, end: 9, step: 2)) // every second page
 #muchpdf(data, pages: (0, 2, (start: 4, end: 7))) // combine lists and ranges
-```
-
-The parameters provided by [image][image] do also work as expected:
-
-```typ
-#muchpdf(
-  read("dolphins.pdf", encoding: none),
-  width: 10cm,
-  alt: "Dolphin population over time",
-)
 ```
 
 ## Questions
