@@ -79,10 +79,13 @@ static void muchpdf_count_pages(const MuchPdfContext *const ctx,
   *output_count = count;
 }
 
+static const uint8_t kErrorOutOfBounds[] = u8"page number out of bounds";
+
 int32_t muchpdf_render_input(uint8_t *const input, const size_t input_len,
                              const MuchPdfOptions *options,
                              MuchPdfRenderedPage **const rendered,
-                             size_t *const rendered_len) {
+                             size_t *const rendered_len,
+                             const uint8_t **const error_message) {
   MuchPdfContext ctx;
   const int32_t res = muchpdf_context_init(input, input_len, options, &ctx);
   if (res != MUCHPDF_OK) {
@@ -102,6 +105,11 @@ int32_t muchpdf_render_input(uint8_t *const input, const size_t input_len,
     }
     for (uint32_t page_number = range.start; page_number <= range.end;
          page_number += range.step) {
+      if (page_number >= input_page_count) {
+        *error_message = kErrorOutOfBounds;
+        muchpdf_context_drop(&ctx);
+        return MUCHPDF_ERR;
+      }
       fz_page *page = fz_load_page(ctx.context, ctx.document, page_number);
       muchpdf_render_page(&ctx, page, &rendered_pages[rendered_pages_idx]);
       ++rendered_pages_idx;

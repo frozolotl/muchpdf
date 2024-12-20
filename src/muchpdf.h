@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <stdint.h>
+#include <uchar.h>
 
 #define MUCHPDF_OK 0
 #define MUCHPDF_ERR 1
@@ -28,4 +29,5 @@ typedef struct {
 int32_t muchpdf_render_input(uint8_t *const input, const size_t input_len,
                              const MuchPdfOptions *options,
                              MuchPdfRenderedPage **const rendered,
-                             size_t *const rendered_len);
+                             size_t *const rendered_len,
+                             const uint8_t **const error_message);

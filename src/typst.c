@@ -55,7 +55,7 @@ int32_t render(const size_t input_len, const size_t scale_len,
 
   MuchPdfPageRange *page_ranges = malloc(page_ranges_len);
   memcpy(page_ranges, &input[input_len + scale_len], page_ranges_len);
-  
+
   const MuchPdfOptions options = {
       .scale = scale,
       .page_ranges = page_ranges,
@@ -63,16 +63,21 @@ int32_t render(const size_t input_len, const size_t scale_len,
   };
   MuchPdfRenderedPage *rendered;
   size_t rendered_len;
-  const int32_t err = muchpdf_render_input(input, input_len, &options,
-                                           &rendered, &rendered_len);
+  const uint8_t *error_message = NULL;
+  const int32_t err = muchpdf_render_input(
+      input, input_len, &options, &rendered, &rendered_len, &error_message);
   if (err != MUCHPDF_OK) {
+    if (error_message != NULL) {
+      wasm_minimal_protocol_send_result_to_host(
+          error_message, strlen((const char *)error_message));
+    }
     return TYPST_ERR;
   }
 
   uint8_t *output;
   size_t output_len;
   muchpdf_serialize_output(rendered, rendered_len, &output, &output_len);
-  
+
   free(input);
   for (size_t i = 0; i < rendered_len; ++i) {
     free(rendered[i].data);
