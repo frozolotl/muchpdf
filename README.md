@@ -29,7 +29,8 @@ The parameters provided by [image][image] do also work as expected:
 
 ---
 
-You can increase the scale, if desired:
+You can increase the render scale, if desired.
+This is useful if the PDF contains images or gradients and you need a higher resolution.
 
 ```typ
 #muchpdf(
