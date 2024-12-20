@@ -1,6 +1,6 @@
 # MuchPDF
 
-MuchPDF allows you to insert PDF files as images into your Typst document.
+[MuchPDF][MuchPDF] allows you to insert PDF files as images into your Typst document.
 
 Huge thanks to the contributors of the [MuPDF][MuPDF] library,
 without which this project would not be possible!
@@ -56,6 +56,7 @@ MuPDF rasterizes some things in its SVG output, which does include gradients.
 This is to be expected and there isn't much MuchPDF or MuPDF can do about it.
 Increasing the scale parameter might lessen the impact of this, though.
 
+[MuchPDF]: https://github.com/frozolotl/muchpdf
 [MuPDF]: https://mupdf.com/
-[image]: https://typst.app/docs/reference/visualize/image/
+[image]: https://typst.app/docs/reference/visualize/image
 [Issue Tracker]: https://github.com/frozolotl/muchpdf/issues
