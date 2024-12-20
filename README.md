@@ -61,7 +61,7 @@ Note that it starts at zero, not one.
 > ```
 
 This most likely means that the PDF file you supplied is not valid.
-If you odn't think this is true, please do open an issue on the [Issue Tracker][Issue Tracker].
+If you don't think this is true, please do open an issue on the [Issue Tracker][Issue Tracker].
 
 > Why is that error message so bad?
 
