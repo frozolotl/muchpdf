@@ -8,12 +8,12 @@
   llvmPackages,
 }:
 stdenv.mkDerivation (finalAttrs: {
-  version = "1.24.9";
+  version = "1.25.2";
   pname = "mupdf";
 
   src = fetchurl {
     url = "https://mupdf.com/downloads/archive/mupdf-${finalAttrs.version}-source.tar.gz";
-    hash = "sha256-C0RqoO7MEU6ZadzNcMl4k1j8y2WJqB1HDclBoIdNqYo=";
+    hash = "sha256-Nsz2peaR4Yis+NtumNCL8F8nu0zjBDLcFfx20ympLU0=";
   };
 
   postPatch = ''

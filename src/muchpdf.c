@@ -54,17 +54,20 @@ static void muchpdf_render_page(MuchPdfContext *const ctx, fz_page *const page,
   fz_device *const device =
       fz_new_svg_device(ctx->context, out, page_width, page_height,
                         FZ_SVG_TEXT_AS_PATH, reuse_images);
+
   fz_run_page(ctx->context, page, device, ctx->affine, &ctx->cookie);
 
   fz_close_device(ctx->context, device);
+  fz_drop_device(ctx->context, device);
   fz_close_output(ctx->context, out);
+  fz_drop_output(ctx->context, out);
 
   rendered->length = fz_buffer_extract(ctx->context, out_buf, &rendered->data);
 }
 
 static void muchpdf_count_pages(const MuchPdfContext *const ctx,
-                                    const MuchPdfOptions *const options,
-                                  uint32_t *const input_count,
+                                const MuchPdfOptions *const options,
+                                uint32_t *const input_count,
                                 uint32_t *const output_count) {
   *input_count = fz_count_pages(ctx->context, ctx->document);
 
@@ -98,6 +101,7 @@ int32_t muchpdf_render_input(uint8_t *const input, const size_t input_len,
       malloc(output_page_count * sizeof(MuchPdfRenderedPage));
   size_t rendered_pages_idx = 0;
 
+  fz_page *page = NULL;
   for (size_t i = 0; i < options->page_ranges_count; ++i) {
     MuchPdfPageRange range = options->page_ranges[i];
     if (range.end == UINT32_MAX) {
@@ -110,9 +114,10 @@ int32_t muchpdf_render_input(uint8_t *const input, const size_t input_len,
         muchpdf_context_drop(&ctx);
         return MUCHPDF_ERR;
       }
-      fz_page *page = fz_load_page(ctx.context, ctx.document, page_number);
-      muchpdf_render_page(&ctx, page, &rendered_pages[rendered_pages_idx]);
+
       fz_drop_page(ctx.context, page);
+      page = fz_load_page(ctx.context, ctx.document, page_number);
+      muchpdf_render_page(&ctx, page, &rendered_pages[rendered_pages_idx]);
       ++rendered_pages_idx;
     }
   }
