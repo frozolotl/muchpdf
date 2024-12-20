@@ -41,8 +41,10 @@
           mupdf = pkgs.callPackage ./nix/mupdf.nix {
             inherit emscripten;
           };
+          typst-test = pkgs.callPackage ./nix/typst-test.nix { };
 
-          version = "0.1.0";
+          typstManifest = builtins.fromTOML (builtins.readFile ./typst.toml);
+          version = typstManifest.package.version;
         in
         {
           # MuPDF compiled to WASM32.
@@ -78,34 +80,6 @@
 
           # Everything packaged to be suitable for publication.
           packages.publication =
-            let
-              manifest = {
-                package = {
-                  name = "muchpdf";
-                  inherit version;
-                  entrypoint = "lib.typ";
-                  authors = [ "frozolotl <frozolotl@protonmail.com>" ];
-                  license = "AGPL-3.0-or-later";
-                  description = "Include PDF images in your Typst document";
-                  repository = "https://github.com/frozolotl/muchpdf";
-                  keywords = [
-                    "pdf"
-                    "image"
-                  ];
-                  categories = [
-                    "visualization"
-                    "integration"
-                  ];
-                  exclude = [
-                    "cross/"
-                    "src/"
-                    "patches/"
-                    "meson.build"
-                  ];
-                };
-              };
-              manifestFile = toml.generate "typst.toml" manifest;
-            in
             pkgs.stdenvNoCC.mkDerivation {
               pname = "muchpdf";
               inherit version;
@@ -117,19 +91,39 @@
 
                 mkdir $out
 
-                cp ${manifestFile} $out/typst.toml
                 cp ${self'.packages.muchpdf}/lib/muchpdf.wasm $out/muchpdf.wasm
-                cp ./LICENSE ./lib.typ README.md $out
+                cp ./typst.toml ./LICENSE ./lib.typ README.md $out
 
                 runHook postInstall
+              '';
+
+              doCheck = true;
+              nativeCheckInputs = [
+                pkgs.typst
+                typst-test
+              ];
+              checkPhase = ''
+                runHook preCheck
+
+                ln -s ${self'.packages.muchpdf}/lib/muchpdf.wasm muchpdf.wasm
+                typst-test run
+
+                runHook postCheck
               '';
             };
 
           devShells.default = pkgs.mkShell.override { inherit stdenv; } {
             name = "muchpdf";
 
+            inputsFrom = [
+              self'.packages.muchpdf
+              self'.packages.publication
+            ];
+
             packages = with pkgs; [
               clang-tools
+              typst
+              typst-test
             ];
           };
         };

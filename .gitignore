@@ -3,3 +3,4 @@ result*
 /emscripten_cache
 /.direnv/
 /.cache
+/muchpdf.wasm
