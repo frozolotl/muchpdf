@@ -24,6 +24,18 @@ You can increase the scale, if desired:
 )
 ```
 
+If you do not want to insert every page into your document, you can provide the `pages` argument.
+Note that it starts at zero, not one.
+
+```typ
+#let data = read("document.pdf", encoding: none)
+#muchpdf(data, pages: 3)
+#muchpdf(data, pages: (0, 2, 10))
+#muchpdf(data, pages: (start: 5, end: 9))
+#muchpdf(data, pages: (start: 5, end: 9, step: 2)) // every second page
+#muchpdf(data, pages: (0, 2, (start: 4, end: 7))) // combine lists and ranges
+```
+
 The parameters provided by [image][image] do also work as expected:
 
 ```typ
@@ -42,7 +54,7 @@ The parameters provided by [image][image] do also work as expected:
 > ```
 
 This most likely means that the PDF file you supplied is not valid.
-If you disagree with that assessment, do please open an issue on the [Issue Tracker][Issue Tracker].
+If you odn't think this is true, please do open an issue on the [Issue Tracker][Issue Tracker].
 
 > Why is that error message so bad?
 
