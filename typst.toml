@@ -8,6 +8,7 @@ description = "Include PDF images in your Typst document"
 repository = "https://github.com/frozolotl/muchpdf"
 keywords = ["pdf", "image"]
 categories = ["visualization", "integration"]
+compiler = "0.12.0"
 
 [tool.typst-test]
 vcs = "git"
