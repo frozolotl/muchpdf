@@ -16,7 +16,6 @@
         { self', pkgs, ... }:
         let
           stdenv = pkgs.stdenvNoCC;
-          toml = pkgs.formats.toml { };
 
           emscripten = pkgs.emscripten.overrideAttrs (
             finalAttrs: prevAttrs: {

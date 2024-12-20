@@ -62,19 +62,21 @@ static void muchpdf_render_page(MuchPdfContext *const ctx, fz_page *const page,
   rendered->length = fz_buffer_extract(ctx->context, out_buf, &rendered->data);
 }
 
-static uint32_t muchpdf_count_pages(const MuchPdfContext *const ctx,
-                                    const MuchPdfOptions *const options) {
-  uint32_t full_count = fz_count_pages(ctx->context, ctx->document);
+static void muchpdf_count_pages(const MuchPdfContext *const ctx,
+                                    const MuchPdfOptions *const options,
+                                  uint32_t *const input_count,
+                                uint32_t *const output_count) {
+  *input_count = fz_count_pages(ctx->context, ctx->document);
 
   uint32_t count = 0;
   for (size_t i = 0; i < options->page_ranges_count; ++i) {
     MuchPdfPageRange range = options->page_ranges[i];
     if (range.end == UINT32_MAX) {
-      range.end = full_count - 1;
+      range.end = *input_count - 1;
     }
     count += (range.end - range.start) / range.step;
   }
-  return count;
+  *output_count = count;
 }
 
 int32_t muchpdf_render_input(uint8_t *const input, const size_t input_len,
@@ -87,13 +89,17 @@ int32_t muchpdf_render_input(uint8_t *const input, const size_t input_len,
     return res;
   }
 
-  const uint32_t page_count = muchpdf_count_pages(&ctx, options);
+  uint32_t input_page_count, output_page_count;
+  muchpdf_count_pages(&ctx, options, &input_page_count, &output_page_count);
   MuchPdfRenderedPage *const rendered_pages =
-      malloc(page_count * sizeof(MuchPdfRenderedPage));
+      malloc(output_page_count * sizeof(MuchPdfRenderedPage));
   size_t rendered_pages_idx = 0;
 
   for (size_t i = 0; i < options->page_ranges_count; ++i) {
-    const MuchPdfPageRange range = options->page_ranges[i];
+    MuchPdfPageRange range = options->page_ranges[i];
+    if (range.end == UINT32_MAX) {
+      range.end = input_page_count - 1;
+    }
     for (uint32_t page_number = range.start; page_number <= range.end;
          page_number += range.step) {
       fz_page *page = fz_load_page(ctx.context, ctx.document, page_number);
