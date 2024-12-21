@@ -29,8 +29,8 @@ The parameters provided by [image][image] do also work as expected:
 
 ---
 
-You can increase the render scale, if desired.
-This is useful if the PDF contains images or gradients and you need a higher resolution.
+You can increase the render scale, if desired. This is useful if the PDF
+contains images or gradients and you need a higher resolution.
 
 ```typ
 #muchpdf(
@@ -41,8 +41,8 @@ This is useful if the PDF contains images or gradients and you need a higher res
 
 ---
 
-If you do not want to insert every page into your document, you can provide the `pages` argument.
-Note that it starts at zero, not one.
+If you do not want to insert every page into your document, you can provide the
+`pages` argument. Note that it starts at zero, not one.
 
 ```typ
 #let data = read("document.pdf", encoding: none)
@@ -54,6 +54,22 @@ Note that it starts at zero, not one.
 ```
 
 ## Questions
+
+> I'm getting the following error message:
+> ```
+> error: plugin panicked: out of bounds memory access
+> ```
+
+You are likely rendering too many pages at once, causing the memory in the
+plugin to fill up too much. Try calling the `muchpdf` function several times
+with different ranges instead:
+```typ
+#let end = 50 // The number of pages you want to output.
+#let step = 10 // Choose this value depending on the complexity of the document.
+#for i in range(0, end, step: step) {
+  muchpdf(data, pages: (start: i, end: calc.min(end, i + step - 1)))
+}
+```
 
 > I'm getting the following error message:
 > ```
