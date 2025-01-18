@@ -28,7 +28,8 @@ shared_module(
   install: true,
   link_args: common_link_args + [
     '--no-entry',
-    '-sBINARYEN_EXTRA_PASSES=-Os'
+    '-sBINARYEN_EXTRA_PASSES=-Os',
+    '-sSTACK_SIZE=1048576'
   ],
   name_prefix: '',
   name_suffix: 'wasm',
