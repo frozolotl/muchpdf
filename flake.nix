@@ -1,5 +1,5 @@
 {
-  description = "Build a cargo project without extra checks";
+  description = "MuchPDF allows you to insert PDF files as images into your Typst document";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
