@@ -16,20 +16,17 @@ deps += dependency('mupdf')
 sources = []
 subdir('src')
 
-common_link_args = [
-  '-sSTANDALONE_WASM=1',
-  '-sSUPPORT_LONGJMP=0',
-]
-
 shared_module(
   'muchpdf',
   sources: sources,
   dependencies: deps,
   install: true,
-  link_args: common_link_args + [
+  link_args: [
     '--no-entry',
     '-sBINARYEN_EXTRA_PASSES=-Os',
-    '-sSTACK_SIZE=1048576'
+    '-sSTACK_SIZE=1048576',
+    '-sSTANDALONE_WASM=1',
+    '-sSUPPORT_LONGJMP=0',
   ],
   name_prefix: '',
   name_suffix: 'wasm',
