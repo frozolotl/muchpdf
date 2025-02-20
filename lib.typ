@@ -73,7 +73,7 @@
       let page = rendered-pages.slice(cursor, count: page-len)
       cursor += page-len
 
-      image.decode(page, format: "svg", ..args)
+      image(page, format: "svg", ..args)
     }
   }
 
