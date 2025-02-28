@@ -8,14 +8,14 @@
 }:
 
 rustPlatform.buildRustPackage rec {
-  pname = "typst-test";
-  version = "0.1.0";
+  pname = "tytanic";
+  version = "0.2.1";
 
   src = fetchFromGitHub {
     owner = "tingerrr";
-    repo = "typst-test";
-    rev = "5fd453bd5a2baf7f3b0cb647be039be58d09bc22";
-    hash = "sha256-maabeDvUhA5yigXbkRWBnbhRKIbwovRhLxQh9xWUQuo=";
+    repo = "tytanic";
+    rev = "v${version}";
+    hash = "sha256-WAWifXDTii6Yj5QOpquNMUMNqZq7/tMo1eCg1Ja2LCk=";
   };
 
   nativeBuildInputs = [
@@ -28,12 +28,12 @@ rustPlatform.buildRustPackage rec {
 
   cargoLock.lockFile = src + /Cargo.lock;
   cargoLock.outputHashes = {
-    "typst-dev-assets-0.11.0" = "sha256-sgwAXSNpOcfJHM51xkbGXVaCHjVopbfqG2zygOwVg3A=";
+    # "typst-dev-assets-0.11.0" = "sha256-sgwAXSNpOcfJHM51xkbGXVaCHjVopbfqG2zygOwVg3A=";
   };
 
   meta = {
     description = "A test runner for typst projects";
-    homepage = "https://tingerrr.github.io/typst-test/index.html";
+    homepage = "https://tingerrr.github.io/tytanic/index.html";
     license = lib.licenses.mit;
   };
 }

@@ -40,7 +40,7 @@
           mupdf = pkgs.callPackage ./nix/mupdf.nix {
             inherit emscripten;
           };
-          typst-test = pkgs.callPackage ./nix/typst-test.nix { };
+          tytanic = pkgs.callPackage ./nix/tytanic.nix { };
 
           typstManifest = builtins.fromTOML (builtins.readFile ./typst.toml);
           version = typstManifest.package.version;
@@ -99,13 +99,13 @@
               doCheck = true;
               nativeCheckInputs = [
                 pkgs.typst
-                typst-test
+                tytanic
               ];
               checkPhase = ''
                 runHook preCheck
 
                 ln -s ${self'.packages.muchpdf}/lib/muchpdf.wasm muchpdf.wasm
-                typst-test run
+                tt run
 
                 runHook postCheck
               '';
@@ -122,7 +122,7 @@
             packages = with pkgs; [
               clang-tools
               typst
-              typst-test
+              tytanic
             ];
           };
         };

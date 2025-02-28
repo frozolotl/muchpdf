@@ -3,6 +3,6 @@
 #let data = read("../../test-assets/document.pdf", encoding: none)
 
 #assert.eq(
-  catch(() => muchpdf(data, pages: 5)).first(),
+  catch(() => muchpdf(data, pages: 5)),
   "plugin errored with: page number out of bounds",
 )
