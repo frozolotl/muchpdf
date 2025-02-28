@@ -27,9 +27,6 @@ rustPlatform.buildRustPackage rec {
   ];
 
   cargoLock.lockFile = src + /Cargo.lock;
-  cargoLock.outputHashes = {
-    # "typst-dev-assets-0.11.0" = "sha256-sgwAXSNpOcfJHM51xkbGXVaCHjVopbfqG2zygOwVg3A=";
-  };
 
   meta = {
     description = "A test runner for typst projects";
