@@ -10,7 +10,7 @@ without which this project would not be possible!
 Import the `muchpdf` function, and give it the PDF data:
 
 ```typ
-#import "@preview/muchpdf:0.1.0": muchpdf
+#import "@preview/muchpdf:0.1.1": muchpdf
 
 #muchpdf(read("graphic.pdf", encoding: none))
 ```
