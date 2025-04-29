@@ -9,13 +9,13 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "tytanic";
-  version = "0.2.1";
+  version = "0.2.2";
 
   src = fetchFromGitHub {
     owner = "tingerrr";
     repo = "tytanic";
     rev = "v${version}";
-    hash = "sha256-WAWifXDTii6Yj5QOpquNMUMNqZq7/tMo1eCg1Ja2LCk=";
+    hash = "sha256-/yPRJoQ5Lr75eL5+Vc+2E278og/02CYSEuBBgHO1NnU=";
   };
 
   nativeBuildInputs = [
