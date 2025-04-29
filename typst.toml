@@ -1,6 +1,6 @@
 [package]
 name = "muchpdf"
-version = "0.1.1"
+version = "0.1.2"
 entrypoint = "lib.typ"
 authors = ["frozolotl <frozolotl@protonmail.com>"]
 license = "AGPL-3.0-or-later"

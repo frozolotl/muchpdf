@@ -5,12 +5,18 @@
 Huge thanks to the contributors of the [MuPDF][MuPDF] library,
 without which this project would not be possible!
 
+## Deprecation
+
+Since Typst 0.14.0, PDFs can be included using the built-in [`image` function](https://typst.app/docs/reference/visualize/image/).
+So, if you can use it, please do!
+It's faster and less likely to crash with unreadable error messages.
+
 ## Usage
 
 Import the `muchpdf` function, and give it the PDF data:
 
 ```typ
-#import "@preview/muchpdf:0.1.1": muchpdf
+#import "@preview/muchpdf:0.1.2": muchpdf
 
 #muchpdf(read("graphic.pdf", encoding: none))
 ```

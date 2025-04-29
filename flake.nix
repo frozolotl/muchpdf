@@ -40,6 +40,9 @@
           mupdf = pkgs.callPackage ./nix/mupdf.nix {
             inherit emscripten;
           };
+          poppler = pkgs.callPackage ./nix/poppler.nix {
+            inherit emscripten;
+          };
           tytanic = pkgs.callPackage ./nix/tytanic.nix { };
 
           typstManifest = builtins.fromTOML (builtins.readFile ./typst.toml);
